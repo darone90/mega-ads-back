@@ -1,9 +1,10 @@
-import {AdTypes} from "../types";
+import {AdTypes, NewAdType, SimpleAdEntity} from "../types";
 import {ValidationError} from "../utils/error";
+import {pool} from "../utils/db";
+import{v4 as uuid} from 'uuid';
+import {FieldPacket} from "mysql2";
 
-interface NewAdType extends Omit<AdTypes, 'id'> {
-    id?: string
-}
+type AdRecordResults = [AdTypes[], FieldPacket[]];
 
 export class AdRecord implements AdTypes {
     public description: string;
@@ -35,6 +36,8 @@ export class AdRecord implements AdTypes {
         if(typeof obj.lat !== 'number' || typeof obj.lon !== 'number') {
             throw new ValidationError('Nie można zlokalizować ogłoszenia')
         }
+
+        this.id = obj.id
         this.name = obj.name;
         this.description = obj.description;
         this.price = obj.price;
@@ -42,5 +45,51 @@ export class AdRecord implements AdTypes {
         this.lat = obj.lat;
         this.lon = obj.lon;
 
+    }
+
+    static async getOne(id: string): Promise<AdRecord | null> {
+        const[results] = await pool.execute("SELECT * FROM `ads` WHERE id = :id", {
+            id,
+        }) as AdRecordResults;
+
+        return results.length > 0 ?
+            new AdRecord(results[0])
+            : null;
+    }
+
+    static async findAll(name: string): Promise<SimpleAdEntity[]> {
+        const [results] = await pool.execute("SELECT * FROM `ads` WHERE `name` LIKE :search", {
+            search: `%${name}%`
+        }) as AdRecordResults
+
+        return results.map(result => {
+            const {id, lat, lon} = result;
+            return {id, lat, lon}
+        });
+    }
+
+    async save():Promise<string> {
+        if(!this.id) {
+            this.id = uuid();
+        } else {
+            throw new ValidationError('cannot add to database an record witch is already existed')
+        }
+        await pool.execute("INSERT INTO `ads`(`id`, `name`, `description`, `price`, `url`, `lat`, `lon`) VALUES (:id, :name, :description, :price, :url, :lat, :lon)", {
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            price: this.price,
+            url: this.url,
+            lat: this.lat,
+            lon: this.lon
+        })
+
+        return this.id
+    }
+
+    static async remove(id: string):Promise<void> {
+        await pool.execute("DELETE FROM `ads` WHERE `id` = :id", {
+            id,
+        })
     }
 }
