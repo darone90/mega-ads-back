@@ -53,6 +53,10 @@ export class AdRecord implements AdTypes {
     }
 
     static async getOne(id: string): Promise<AdRecord | null> {
+        await pool.execute("UPDATE `ads` SET `views`= `views` + 1 WHERE `id` = :id", {
+            id
+        })
+
         const[results] = await pool.execute("SELECT * FROM `ads` WHERE id = :id", {
             id,
         }) as AdRecordResults;
