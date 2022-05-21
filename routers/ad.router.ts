@@ -2,10 +2,23 @@ import {Router} from "express";
 import {AdRecord} from "../records/ad.record";
 import {ConfirmationRecord} from "../records/confirmation.record";
 import {sendActivationLink} from "../utils/mailSender";
+import fetch from 'node-fetch';
+
+
 
 export const adRouter = Router()
 
 adRouter
+    .post('/urlcheck/', async (req, res) => {
+        const url = req.body.url;
+        try {
+            await fetch(url);
+            res.json({ok: true});
+        } catch {
+            res.json({ok: false});
+        }
+    })
+
     .get('/delete/:id', async (req, res) => {
         const id = req.params.id;
         await ConfirmationRecord.remove(id)
