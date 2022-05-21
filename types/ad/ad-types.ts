@@ -1,5 +1,7 @@
-export interface NewAdType extends Omit<AdTypes, 'id'> {
-    id?: string
+export interface NewAdType extends Omit<AdTypes, 'id' | 'views' | "accepted"> {
+    id?: string;
+    accepted?: number;
+    views?: number;
 }
 export interface SimpleAdEntity {
     lat: number;
@@ -11,4 +13,6 @@ export interface AdTypes extends SimpleAdEntity{
     url: string;
     name: string;
     description: string;
+    views: number;
+    accepted: number;
 }

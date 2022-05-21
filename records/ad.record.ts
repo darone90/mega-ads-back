@@ -7,6 +7,7 @@ import {FieldPacket} from "mysql2";
 type AdRecordResults = [AdTypes[], FieldPacket[]];
 
 export class AdRecord implements AdTypes {
+
     public description: string;
     public id: string;
     public lat: number;
@@ -14,6 +15,8 @@ export class AdRecord implements AdTypes {
     public name: string;
     public price: number;
     public url: string;
+    public views: number;
+    public accepted: number;
 
     constructor(obj: NewAdType) {
         if(!obj.name || obj.name.length > 100) {
@@ -44,6 +47,8 @@ export class AdRecord implements AdTypes {
         this.url = obj.url;
         this.lat = obj.lat;
         this.lon = obj.lon;
+        this.accepted = obj.accepted;
+        this.views = obj.views;
 
     }
 
@@ -58,7 +63,7 @@ export class AdRecord implements AdTypes {
     }
 
     static async findAll(name: string): Promise<SimpleAdEntity[]> {
-        const [results] = await pool.execute("SELECT * FROM `ads` WHERE `name` LIKE :search", {
+        const [results] = await pool.execute("SELECT * FROM `ads` WHERE `name` LIKE :search AND `accepted` = 1", {
             search: `%${name}%`
         }) as AdRecordResults
 
