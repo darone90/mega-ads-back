@@ -4,11 +4,12 @@ import 'express-async-errors';
 import {handleError} from "./utils/error";
 import rateLimit from "express-rate-limit";
 import {adRouter} from "./routers/ad.router";
+import {appConfig} from "./app.config";
 
 const app = express()
 
 app.use(cors({
-    origin: 'http://localhost:3000'
+    origin: appConfig.origin
 }));
 
 app.use(express.json());
@@ -18,10 +19,10 @@ app.use(rateLimit({
     max: 100
 }))
 
-app.use('/ad', adRouter);
+app.use(appConfig.prefix, adRouter);
 
 app.use(handleError);
 
-app.listen(3030, '0.0.0.0', () => {
+app.listen(appConfig.port, '0.0.0.0', () => {
     console.log(`app listen on port 3030`)
 })
